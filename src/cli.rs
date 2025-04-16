@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
+use crate::search::{Filter, ParamCoverageFilter, ParamTypeFilter};
+
 #[derive(Clone, Debug, Parser)]
 #[clap(about, author, version)]
 pub struct Opts {
@@ -9,11 +11,53 @@ pub struct Opts {
     pub command: Commands,
 }
 
+impl Opts {
+    pub fn filter(&self) -> Filter {
+        match &self.command {
+            Commands::List {
+                path: _,
+                binary_only,
+                public_only,
+            } => match (binary_only, public_only) {
+                (true, true) => Filter {
+                    visibility: Some(syn::Visibility::Public(
+                        syn::token::Pub {
+                            span: proc_macro2::Span::call_site(),
+                        },
+                    )),
+                    param_type: ParamTypeFilter::BinaryOnly,
+                    param_coverage: ParamCoverageFilter::default(),
+                },
+                (true, false) => Filter {
+                    visibility: None,
+                    param_type: crate::search::ParamTypeFilter::BinaryOnly,
+                    param_coverage: ParamCoverageFilter::default(),
+                },
+                (false, true) => Filter {
+                    visibility: Some(syn::Visibility::Public(
+                        syn::token::Pub {
+                            span: proc_macro2::Span::call_site(),
+                        },
+                    )),
+                    param_type: ParamTypeFilter::default(),
+                    param_coverage: ParamCoverageFilter::default(),
+                },
+                (false, false) => Filter::default(),
+            },
+            Commands::Generate { inpath, outpath } => todo!(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Subcommand)]
 pub enum Commands {
     /// Lists viable fuzzing targets
     #[command(arg_required_else_help = true)]
     List {
+        #[clap(short, long, action)]
+        binary_only: bool,
+        #[clap(short, long, action)]
+        public_only: bool,
         /// Path to Rust code to search
         path: Option<PathBuf>,
     },
