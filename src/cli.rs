@@ -18,6 +18,7 @@ impl Opts {
                 path: _,
                 binary_only,
                 public_only,
+                json: _,
             } => match (binary_only, public_only) {
                 (true, true) => Filter {
                     visibility: Some(syn::Visibility::Public(
@@ -58,6 +59,8 @@ pub enum Commands {
         binary_only: bool,
         #[clap(short, long, action)]
         public_only: bool,
+        #[clap(short, long, action)]
+        json: bool,
         /// Path to Rust code to search
         path: Option<PathBuf>,
     },

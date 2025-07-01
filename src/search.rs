@@ -3,6 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use serde::Serialize;
 use syn::{ItemFn, Type, visit::Visit};
 
 #[derive(Copy, Clone, Debug)]
@@ -48,7 +49,7 @@ pub struct Filter {
     pub param_coverage: ParamCoverageFilter,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Target {
     pub name: String,
     pub file_path: PathBuf,

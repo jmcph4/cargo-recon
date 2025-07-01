@@ -19,6 +19,7 @@ fn main() -> eyre::Result<()> {
             ref path,
             binary_only: _,
             public_only: _,
+            json,
         } => {
             let mut targets = Vec::new();
 
@@ -51,10 +52,16 @@ fn main() -> eyre::Result<()> {
                 return Err(eyre!("Not file nor directory"));
             }
 
-            targets
-                .iter()
-                .flatten()
-                .for_each(|target| println!("{target}"));
+            targets.retain(|x| !x.is_empty());
+
+            if json {
+                println!("{}", serde_json::to_string(&targets).unwrap());
+            } else {
+                targets
+                    .iter()
+                    .flatten()
+                    .for_each(|target| println!("{target}"));
+            }
         }
         _ => unimplemented!(),
     }
