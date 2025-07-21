@@ -21,11 +21,7 @@ impl Opts {
                 json: _,
             } => match (binary_only, public_only) {
                 (true, true) => Filter {
-                    visibility: Some(syn::Visibility::Public(
-                        syn::token::Pub {
-                            span: proc_macro2::Span::call_site(),
-                        },
-                    )),
+                    visibility: Some(rustdoc_types::Visibility::Public),
                     param_type: ParamTypeFilter::BinaryOnly,
                     param_coverage: ParamCoverageFilter::default(),
                 },
@@ -35,17 +31,16 @@ impl Opts {
                     param_coverage: ParamCoverageFilter::default(),
                 },
                 (false, true) => Filter {
-                    visibility: Some(syn::Visibility::Public(
-                        syn::token::Pub {
-                            span: proc_macro2::Span::call_site(),
-                        },
-                    )),
+                    visibility: Some(rustdoc_types::Visibility::Public),
                     param_type: ParamTypeFilter::default(),
                     param_coverage: ParamCoverageFilter::default(),
                 },
                 (false, false) => Filter::default(),
             },
-            Commands::Generate { inpath, outpath } => todo!(),
+            Commands::Generate {
+                inpath: _,
+                outpath: _,
+            } => todo!(),
         }
     }
 }

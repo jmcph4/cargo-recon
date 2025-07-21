@@ -2,13 +2,12 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use cli::Opts;
-use eyre::eyre;
 use search::search_file;
-use walkdir::WalkDir;
 
 use crate::cli::Commands;
 
 pub mod cli;
+pub mod rustdoc;
 pub mod search;
 
 fn main() -> eyre::Result<()> {
@@ -21,8 +20,6 @@ fn main() -> eyre::Result<()> {
             public_only: _,
             json,
         } => {
-            let mut targets = Vec::new();
-
             let path = match path {
                 Some(p) => p,
                 None => {
@@ -32,35 +29,12 @@ fn main() -> eyre::Result<()> {
                 }
             };
 
-            if path.is_dir() {
-                for entry in
-                    WalkDir::new(path).into_iter().filter_map(|e| e.ok())
-                {
-                    if entry.file_type().is_file()
-                        && entry.path().extension().and_then(|s| s.to_str())
-                            == Some("rs")
-                    {
-                        targets.extend(search_file(
-                            entry.path(),
-                            Some(opts.filter()),
-                        ));
-                    }
-                }
-            } else if path.is_file() {
-                targets.extend(search_file(path, Some(opts.filter())));
-            } else {
-                return Err(eyre!("Not file nor directory"));
-            }
-
-            targets.retain(|x| !x.is_empty());
+            let targets = search_file(path, Some(opts.filter()))?;
 
             if json {
                 println!("{}", serde_json::to_string(&targets).unwrap());
             } else {
-                targets
-                    .iter()
-                    .flatten()
-                    .for_each(|target| println!("{target}"));
+                targets.iter().for_each(|target| println!("{target}"));
             }
         }
         _ => unimplemented!(),
