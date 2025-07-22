@@ -11,6 +11,7 @@ pub mod rustdoc;
 pub mod search;
 
 fn main() -> eyre::Result<()> {
+    pretty_env_logger::init_timed();
     let opts = Opts::parse();
 
     match opts.command {

@@ -13,6 +13,8 @@ categories = ["command-line-utilities", "development-tools::testing", "developme
 [dependencies]
 clap = { version = "4.5.34", features = ["derive"] }
 eyre = "0.6.12"
+log = "0.4.27"
+pretty_env_logger = "0.5.0"
 rustdoc-json = "0.9.6"
 rustdoc-types = "0.54.0"
 serde = { version = "1.0.219", features = ["derive"] }
