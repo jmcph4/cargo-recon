@@ -9,6 +9,8 @@ use crate::search::{Filter, ParamCoverageFilter, ParamTypeFilter};
 pub struct Opts {
     #[command(subcommand)]
     pub command: Commands,
+    #[clap(long, short, action)]
+    pub quiet: bool,
 }
 
 impl Opts {

@@ -30,7 +30,7 @@ fn main() -> eyre::Result<()> {
                 }
             };
 
-            let targets = search_file(path, Some(opts.filter()))?;
+            let targets = search_file(path, Some(opts.filter()), !opts.quiet)?;
 
             if json {
                 println!("{}", serde_json::to_string(&targets).unwrap());

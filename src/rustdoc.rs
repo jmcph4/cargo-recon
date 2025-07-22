@@ -4,12 +4,18 @@ use log::info;
 use rustdoc_types::{Crate, Item, ItemEnum, Visibility};
 
 /// Builds the Rustdoc JSON for the specified project
-pub fn build_rustdoc<P>(path: P) -> eyre::Result<Crate>
+///
+/// If `capture` then forward Rustdoc's stderr to our stderr
+pub fn build_rustdoc<P>(path: P, capture: bool) -> eyre::Result<Crate>
 where
     P: AsRef<Path>,
 {
-    let json_path = configure_rustdoc_builder_from_project_root(path)
-        .build_with_captured_output(io::sink(), io::stderr())?;
+    let builder = configure_rustdoc_builder_from_project_root(path);
+    let json_path = if capture {
+        builder.build_with_captured_output(io::sink(), io::stderr())?
+    } else {
+        builder.build_with_captured_output(io::sink(), io::sink())?
+    };
     info!("Rustdoc build completed at {}", json_path.display());
     let raw_json = fs::read_to_string(json_path)?;
     let cooked_json = serde_json::from_str(&raw_json)?;

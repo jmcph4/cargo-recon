@@ -80,15 +80,19 @@ impl fmt::Display for Target {
     }
 }
 
+/// Finds all viable fuzzing targets in `path` subject to `filter`
+///
+/// If `capture` then forward Rustdoc's stderr to our stderr
 pub fn search_file<P>(
     path: P,
     filter: Option<Filter>,
+    capture: bool,
 ) -> eyre::Result<Vec<Target>>
 where
     P: AsRef<Path>,
 {
     info!("Commencing search with {filter:?}");
-    let root = build_rustdoc(path)?;
+    let root = build_rustdoc(path, !capture)?;
     let mut candidates = functions(&root);
     let mut candidates_after_params: Vec<Item> = vec![];
 
@@ -103,7 +107,6 @@ where
                 let mut all_params_fuzzable = true;
 
                 for (_, param_type) in &curr_func.sig.inputs {
-                    dbg!(&param_type);
                     if is_fuzzable_type(param_type, f.param_type) {
                         found_fuzzable_param = true;
                     } else {
@@ -143,15 +146,21 @@ fn is_fuzzable_type(ty: &Type, filter: ParamTypeFilter) -> bool {
         } => {
             if let Type::Slice(slice) = type_.as_ref() {
                 if let Type::ResolvedPath(type_path) = slice.as_ref() {
-                    let generic_args = type_path.args.clone().unwrap();
-                    return are_generic_args_fuzzable(&generic_args, filter);
+                    if let Some(generic_args) = &type_path.args {
+                        return are_generic_args_fuzzable(generic_args, filter);
+                    } else {
+                        return true;
+                    }
                 }
             }
         }
         // Matches Vec<u8> and String
         Type::ResolvedPath(type_path) => {
-            let generic_args = type_path.args.clone().unwrap();
-            return are_generic_args_fuzzable(&generic_args, filter);
+            if let Some(generic_args) = &type_path.args {
+                return are_generic_args_fuzzable(generic_args, filter);
+            } else {
+                return true;
+            }
         }
         Type::Primitive(s) => match s.as_str() {
             "u8" | "u16" | "u32" | "u64" | "u128" | "usize" | "i8" | "i16"
